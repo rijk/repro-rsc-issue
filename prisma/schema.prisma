@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_CONNECTION_STRING")
+}
+
+type ByAt {
+  at DateTime @db.Date
+  by String?  @db.ObjectId
+}
+
+type Image {
+  src    String
+  width  Int
+  height Int
+}
+
+model Organization {
+  id        String              @id @default(auto()) @map("_id") @db.ObjectId
+  colors    OrganizationColors?
+  logos     OrganizationLogos?
+  hosts     String[]
+  name      String
+  landing   LandingPage?
+  seats     Seats?
+  users     User[]
+  resources Resource[]
+
+  @@unique(hosts)
+  @@map("organizations")
+}
+
+type OrganizationColors {
+  accent String /// Stored as RGB, regex: `/^\d+ \d+ \d+$/`
+}
+
+type OrganizationLogos {
+  nav String /// Stored as SVG
+}
+
+type LandingPage {
+  title  String?
+  intro  String?
+  quotes LandingPageQuote[]
+}
+
+type LandingPageQuote {
+  quote  String
+  author String?
+}
+
+type Seats {
+  available Int
+  used      SeatUsage[]
+}
+
+type SeatUsage {
+  at  DateTime
+  by  String   @db.ObjectId
+  for String   @db.ObjectId
+}
+
+model Lesson {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  moduleId  String          @db.ObjectId
+  module    Module          @relation(fields: [moduleId], references: [id])
+  slug      String
+  title     String
+  intro     String?
+  content   String?
+  exercise  String?
+  resources String?
+  published ByAt?
+  v         Int?
+  draft     DraftLesson
+  history   LessonVersion[]
+  progress  Progress[]
+
+  @@index([slug])
+  @@map("lessons")
+}
+
+type DraftLesson {
+  content   String
+  exercise  String?
+  resources String?
+  updated   ByAt
+}
+
+type LessonVersion {
+  diff      LessonVersionDiff
+  published ByAt
+  v         Int
+}
+
+type LessonVersionDiff {
+  content   String?
+  exercise  String?
+  resources String?
+}
+
+model Module {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  pathId  String   @db.ObjectId
+  path    Path     @relation(fields: [pathId], references: [id])
+  slug    String
+  title   String
+  lessons Lesson[]
+  order   String[] @db.ObjectId
+  updated ByAt?
+
+  @@unique([pathId, slug])
+  @@map("modules")
+}
+
+model Path {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String
+  number      Int
+  title       String
+  soon        Boolean?
+  type        String
+  intro       String?
+  color       String? /// Stored as RGB, regex: `/^\d+ \d+ \d+$/`
+  duration    String? /// Example: 5h
+  certificate PathCertificate?
+  modules     Module[]
+  order       String[]         @db.ObjectId
+  updated     ByAt?
+
+  @@unique(slug)
+  @@map("paths")
+}
+
+type PathCertificate {
+  title  String
+  skills String
+}
+
+model Resource {
+  id             String             @id @default(auto()) @map("_id") @db.ObjectId
+  slug           String             @unique(map: "slug_1")
+  categoryIds    String[]           @db.ObjectId
+  categories     ResourceCategory[] @relation(fields: [categoryIds], references: [id])
+  organizationId String?            @db.ObjectId
+  organization   Organization?      @relation(fields: [organizationId], references: [id])
+
+  title       String
+  description String?
+  type        String
+  difficulty  String
+  duration    String?
+  thumbnail   Image?
+
+  intro     String?
+  content   String?
+  resources String?
+  spotlight String?
+
+  published ByAt?
+  v         Int?
+  draft     DraftResource
+  history   ResourceVersion[]
+
+  @@index(organizationId)
+  @@map("resources")
+}
+
+type DraftResource {
+  intro     String?
+  content   String
+  resources String?
+  spotlight String?
+  updated   ByAt
+}
+
+type ResourceVersion {
+  diff      String
+  published ByAt
+  v         Int
+}
+
+model ResourceCategory {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String     @unique(map: "slug_1")
+  title       String
+  description String?
+  order       Int
+  resourceIds String[]   @db.ObjectId
+  resources   Resource[] @relation(fields: [resourceIds], references: [id])
+
+  @@map("categories")
+}
+
+model Event {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  organizationIds String[] @db.ObjectId
+  slug            String   @unique
+  title           String
+  intro           String
+  info            String?
+  date            String
+
+  @@map("events")
+}
+
+model Link {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  organizationIds String[] @db.ObjectId
+  title           String
+  url             String
+
+  @@map("links")
+}
+
+model User {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String?
+  organizationId String          @db.ObjectId
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  roles          String[]
+  email          String          @unique
+  name           String
+  password       String
+  progress       Progress[]
+  requests       AccessRequest[]
+
+  @@map("accounts")
+}
+
+type AccessRequest {
+  path    String
+  created DateTime
+}
+
+model Progress {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String     @db.ObjectId
+  user       User       @relation(fields: [userId], references: [id])
+  lessonId   String     @db.ObjectId
+  lesson     Lesson     @relation(fields: [lessonId], references: [id])
+  viewed     DateTime[]
+  played     DateTime[]
+  completed  DateTime?
+  downloaded DateTime[]
+
+  @@unique([userId, lessonId])
+  @@map("progress")
+}

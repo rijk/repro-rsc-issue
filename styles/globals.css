@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  @apply h-full;
+}
+
+/**
+ * Make sure Next.js wrappers don't mess with the page alignment
+ * (see https://github.com/vercel/next.js/discussions/41745#discussioncomment-3973420).
+ */
+[data-nextjs-scroll-focus-boundary] {
+  display: contents;
+}
+
+:root {
+  --accent-color: 50 110 239;
+  --path-color: var(--accent-color);
+}
+
+a {
+  @apply cursor-pointer;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+	border: none;
+}
+
+@layer components {
+  .button {
+    @apply inline-flex justify-center rounded-md whitespace-nowrap border border-transparent bg-accent/10 px-4 py-2 text-sm font-medium transition-colors text-accent hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2;
+  }
+  .button[disabled] {
+    @apply pointer-events-none bg-gray-100 text-gray-500;
+  }
+  .button.path {
+    --accent-color: var(--path-color);
+  }
+  .button.primary {
+    @apply bg-accent text-white hover:bg-accent/80;
+  }
+  .button.primary[disabled] {
+    @apply bg-gray-400;
+  }
+  .button.secondary {
+    @apply bg-white hover:bg-accent/10;
+  }
+
+  .center-content {
+    @apply flex h-full flex-col items-center justify-center;
+  }
+
+  .uppercase-caption {
+    @apply text-[85%] leading-6 font-extrabold tracking-wide uppercase;
+  }
+
+  .section-with-image {
+    @apply col-start-2 col-end-23 my-32 flex gap-16 bg-accent p-16 pr-[2vw] text-white;
+  }
+
+  .thead {
+    @apply table-row bg-gray-50 bg-opacity-75 text-left text-xs text-gray-500 border-b border-gray-300 backdrop-blur backdrop-filter;
+  }
+  .th {
+    @apply table-cell py-3.5 px-4 font-medium;
+  }
+
+  .input-field {
+    @apply block flex-1 focus:border-accent focus:ring-accent sm:text-sm rounded-md border-gray-300;
+  }
+
+  .categories > div:has(ul:empty) {
+    display: none;
+  }
+
+  .card {
+    @apply rounded-lg bg-white p-7 shadow-lg shadow-black/3 transition-shadow hover:shadow-black/10;
+  }
+}
