@@ -9,4 +9,5 @@ export default async function Head({ params }: Props) {
   })
 
   if (path) return <title>{path.title}</title>
+  return null
 }
