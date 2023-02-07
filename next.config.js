@@ -21,7 +21,7 @@ module.exports = {
     ]
     return [
       {
-        source: '/',
+        source: '/(index.rsc)?',
         has: [
           {
             type: 'host',
