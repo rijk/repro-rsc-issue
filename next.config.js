@@ -21,7 +21,17 @@ module.exports = {
     ]
     return [
       {
-        source: '/(index.rsc)?',
+        source: '/index.rsc',
+        has: [
+          {
+            type: 'host',
+            value: `(?<organization>.+?)(\.(${domains.join('|')}))?$`,
+          },
+        ],
+        destination: '/:organization.rsc',
+      },
+      {
+        source: '/',
         has: [
           {
             type: 'host',
